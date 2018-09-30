@@ -7,5 +7,5 @@ from client import Player
 sys.excepthook = Pyro4.util.excepthook
 
 game = Pyro4.Proxy("PYRONAME:ERS")
-Player(game)
-
+player = Player()
+player.initiate_game(game)

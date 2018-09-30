@@ -10,7 +10,7 @@ if sys.version_info < (3, 0):
 class Player(object):
     def __init__(self):
         self.name = ""
-        self.round = 0
+        self.round = 1
     
     def initiate_game(self, game):
         if game.get_locked_status(): print("The game has already started sorry you are unable to join at this time!")
@@ -42,7 +42,6 @@ class Player(object):
                 return
             else: self.game_print("Please enter a valid command!")
         game.signal_ready(self.name)
-        print("signaled ready")
         self.wait_for_start(game)
 
 
@@ -76,6 +75,7 @@ class Player(object):
                     self.round += 1
                     break
 
+            print("------------------------------ GETTING ROUND RESULTS --------------------------")
             self.game_print(game.get_round_results())
 
     def lobby_menu(self):
@@ -84,14 +84,6 @@ class Player(object):
         self.game_print("c or check: checks the status of players in the lobby")
         self.game_print("q or quit: quit the lobby entirely")
         self.game_print("----------------------------------------------------------------------")
-
-    def game_menu(self):
-        self.game_print("--------------------------- ERS GAME MENU ---------------------------")
-        self.game_print("f or flip: flips the next card")
-        self.game_print("c or check: checks the status of players in the lobby")
-        self.game_print("q or quit: quit the lobby entirely")
-        self.game_print("----------------------------------------------------------------------")        
-
 
     def game_print(self, text=""):
         print(("ERS [{0}]: " + text).format(self.name))

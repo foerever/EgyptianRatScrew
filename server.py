@@ -43,6 +43,12 @@ class Game(object):
     def get_winner(self):
         return self.winner
 
+    def get_round(self):
+        return self.round, self.current_card
+
+    def slap_attempt(self, name, timestamp):
+        self.slaps.append((name, timestamp))
+
     @Pyro4.expose
     def register_player(self, name):
         if not self.locked: 
@@ -73,21 +79,26 @@ class Game(object):
     @Pyro4.expose
     def signal_ready(self, name):
         self.players[name]["ready"] = True
-        if not self.started and len(self.players.keys()) > 1 and self.players_ready(): 
-            self.instantiate_game()
-
-    def instantiate_game(self):
-        self.started, self.locked = True, True
-        self.distribute_cards() 
-        self.player_list = list(self.players.keys())
-        self.new_round()
-        self.start_game()
+        if len(self.players.keys()) > 1 and self.players_ready(): 
+            if not self.started: 
+                self.started, self.locked = True, True
+                self.distribute_cards() 
+                self.player_list = list(self.players.keys())
+            self.next_round()
 
     def distribute_cards(self):
         num_players = len(self.players.keys())
         while not self.deck.will_be_empty(num_players):
             for player in self.players.keys():
                 self.players[player]["pile"].append(self.deck.take_top())
+
+    def next_round(self):
+        if self.winner_exists(): self.winner = self.winner_exists()
+        if self.players_ready():
+            if self.round == 0: self.new_round()
+            else:
+                self.apply_round_results()
+                self.new_round()
 
     def new_round(self):
         self.reset_players_status()
@@ -97,49 +108,37 @@ class Game(object):
         self.round_history.append((self.player_list[turn], card))
         self.current_card = str(card.get_value()) + " of " + str(card.get_suit())
 
-    def get_round(self):
-        return self.round, self.current_card
-
-    def slap_attempt(self, name, timestamp):
-        self.slaps.append((name, timestamp))
-
     def is_valid_slap(self):
-        top_card = self.round_history[self.round - 1][1]
-        second_card = self.round_history[self.round - 2][1]
-        third_card = self.round_history[self.round - 3][1]
-        fourth_card = self.round_history[self.round - 4][1]
         if not self.pile: return False
 
         # check if it is a slap on doubles
-        if top_card.get_value() == second_card.get_value(): return True
+        if self.round > 1 and top_card.get_value() == second_card.get_value(): return True
 
         # check if it is a slap on sandwich
-        elif top_card.get_value() == third_card.get_value(): return True
-
-        # check if it is a slap on ascending or descending
-        elif self.is_ascending_descending([fourth_card, third_card, second_card, top_card]): return True
+        elif self.round > 2 and top_card.get_value() == third_card.get_value(): return True
 
         # check if it is a slap on top bottom
-        elif self.round_history[0][1] == top_card.get_value(): return True
+        elif self.round > 0 and self.round_history[0][1] == top_card.get_value(): return True
+
+        # check if it is a slap on ascending or descending
+        elif self.round > 3 and self.is_ascending_or_descending(): return True
 
         # otherwise we have a false slap
         return False
         
-    def is_ascending_descending(self, card_list):
+    def is_ascending_or_descending(self):
         cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
-
-        # check if we are ascending or descending
-        if ((cards.index(card_list[0]) + 1 == cards.index(card_list[1]) 
-            and cards.index(card_list[1]) + 1 == cards.index(card_list[2])
-            and cards.index(card_list[2]) + 1 == cards.index(card_list[3])
-            and cards.index(card_list[3]) + 1 == cards.index(card_list[4]))
-            or 
-            (cards.index(card_list[0]) - 1 == cards.index(card_list[1]) 
-            and cards.index(card_list[1]) - 1 == cards.index(card_list[2])
-            and cards.index(card_list[2]) - 1 == cards.index(card_list[3])
-            and cards.index(card_list[3]) - 1 == cards.index(card_list[4]))):
-            return True
-        else: return False
+        top_card = self.round_history[self.round - 1][1]
+        second_card = self.round_history[self.round - 2][1]
+        third_card = self.round_history[self.round - 3][1]
+        fourth_card = self.round_history[self.round - 4][1]
+        card_list = [fourth_card, third_card, second_card, top_card]
+        ascending = True
+        descending = True
+        for i in range(3):
+            if cards.index(card_list[i]) + 1 != card.index(card_list[i+1]): ascending = False
+            if cards.index(card_list[i]) != card.index(card_list[i+1]) - 1: descending = False
+        return ascending or descending
 
     def apply_round_results(self):
         winner = ""
@@ -167,27 +166,15 @@ class Game(object):
         self.round_result = result
 
     def winner_exists(self):
-        for player in players.keys():
-            if len(players[player]["pile"]) == 52:
-                return player
+        for player in self.players.keys():
+            if len(self.players[player]["pile"]) == 52: return player
         return ""
 
-
-    def start_game(self):
-        while True:
-            if self.winner_exists(): 
-                self.winner = self.winner_exists()
-                break
-
-            if self.players_ready():
-                self.apply_round_results()
-                self.new_round()
-
-    def single_computer_start(self, name):
-        self.players[name]["ready"] = True
-        if len(self.players.keys()) > 1 and self.players_ready(): 
-            self.players.pop(name, None)
-            self.instantiate_game()
+    # def single_computer_start(self, name):
+    #     self.players[name]["ready"] = True
+    #     if len(self.players.keys()) > 1 and self.players_ready(): 
+    #         self.players.pop(name, None)
+    #         self.instantiate_game()
 
 def main():
     Pyro4.Daemon.serveSimple(

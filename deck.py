@@ -1,6 +1,6 @@
 from collections import deque
 import random
-import card
+from card import Card
 
 class Deck():
 	def __init__(self):
@@ -21,14 +21,14 @@ class Deck():
 		else: raise ValueError("You can only add objects of the class type Card to the deck")
 
 	def is_empty(self):
-		return False if deck else True
+		return False if self.deck else True
 
 	def will_be_empty(self, num):
-		return True if len(deck) - num <= 0 else False
+		return True if len(self.deck) - num <= 0 else False
 
 
 	def take_top(self):
-		if deck: return deck.pop()
+		if self.deck: return self.deck.pop()
 		else: raise ValueError("You can't take from an empty deck!!!")
 
 	def shuffle_deck(self):

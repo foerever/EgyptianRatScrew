@@ -28,7 +28,7 @@ Deal with disconnections
 
 
 # Future Functionality to Add
-Add lobbies, difficulty levels
+Add lobbies, difficulty levels, handle disconnects
 
 # design choices:
 - allowing a player to decide when to turn their card or automating it

@@ -1,8 +1,10 @@
 from __future__ import print_function
 from collections import defaultdict
+from collections import deque
 import Pyro4
-import deck
+from deck import Deck
 import random
+import time
 
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
@@ -11,12 +13,15 @@ class Game(object):
         self.players = defaultdict(lambda:defaultdict(deque))
         self.locked = False
         self.started = False
-        self.new_round = False
-        self.deck = Deck().generate_fresh_deck().shuffle_deck()
+        self.deck = Deck()
+        self.deck.generate_fresh_deck()
+        self.deck.shuffle_deck()
         self.pile = deque()
         self.round = 0
         self.round_history = []
+        self.round_result = ""
         self.current_card = ""
+        self.winner = ""
         self.player_list = []
         self.slaps = []
 
@@ -28,6 +33,15 @@ class Game(object):
 
     def get_players(self):
         return self.players.keys()
+
+    def get_round_number(self):
+        return self.round
+
+    def get_round_results(self):
+        return self.round_result
+
+    def get_winner(self):
+        return self.winner
 
     @Pyro4.expose
     def register_player(self, name):
@@ -58,14 +72,15 @@ class Game(object):
 
     @Pyro4.expose
     def signal_ready(self, name):
-        self.players[name] = True
-        if len(self.players.keys()) > 1 and self.players_ready(): 
+        self.players[name]["ready"] = True
+        if not self.started and len(self.players.keys()) > 1 and self.players_ready(): 
             self.instantiate_game()
 
     def instantiate_game(self):
         self.started, self.locked = True, True
         self.distribute_cards() 
-        self.player_list = self.players.keys()
+        self.player_list = list(self.players.keys())
+        self.new_round()
         self.start_game()
 
     def distribute_cards(self):
@@ -75,15 +90,11 @@ class Game(object):
                 self.players[player]["pile"].append(self.deck.take_top())
 
     def new_round(self):
-        '''
-        takes: self
-        returns: a new round
-        '''
         self.reset_players_status()
         self.round += 1
         turn = self.round % len(self.player_list)
-        card = self.players[player_list[turn]]["pile"].pop()
-        self.round_history.append((player_list[turn], card))
+        card = self.players[self.player_list[turn]]["pile"].pop()
+        self.round_history.append((self.player_list[turn], card))
         self.current_card = str(card.get_value()) + " of " + str(card.get_suit())
 
     def get_round(self):
@@ -116,6 +127,7 @@ class Game(object):
         
     def is_ascending_descending(self, card_list):
         cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
+
         # check if we are ascending or descending
         if ((cards.index(card_list[0]) + 1 == cards.index(card_list[1]) 
             and cards.index(card_list[1]) + 1 == cards.index(card_list[2])
@@ -129,7 +141,7 @@ class Game(object):
             return True
         else: return False
 
-    def get_round_results(self):
+    def apply_round_results(self):
         winner = ""
         losers = []
         result = "\n\n ROUND RESULTS: "
@@ -152,24 +164,30 @@ class Game(object):
         else:
             for loser in losers:
                 result += loser + " slapped incorrectly and lost 2 cards \n"
-        return result
+        self.round_result = result
 
-
-
-
+    def winner_exists(self):
+        for player in players.keys():
+            if len(players[player]["pile"]) == 52:
+                return player
+        return ""
 
 
     def start_game(self):
         while True:
-            if players_ready():
+            if self.winner_exists(): 
+                self.winner = self.winner_exists()
+                break
+
+            if self.players_ready():
+                self.apply_round_results()
                 self.new_round()
-            else:
 
-
-
-
-
-
+    def single_computer_start(self, name):
+        self.players[name]["ready"] = True
+        if len(self.players.keys()) > 1 and self.players_ready(): 
+            self.players.pop(name, None)
+            self.instantiate_game()
 
 def main():
     Pyro4.Daemon.serveSimple(

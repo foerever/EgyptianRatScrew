@@ -2,6 +2,10 @@
 The card game Egyptian Rat Screw built to be played by multiple players from terminal.
 
 # Rules
+sdfsfsd
+
+Slapping always overwrites face or ace card. So if player 1 would win the round because of an ace that he played 
+a round ago but then he accidently slaps the pile he will lose 2 cards as penalty and the game will continue.
 
 
 # Tools

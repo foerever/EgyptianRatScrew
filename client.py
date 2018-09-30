@@ -1,6 +1,7 @@
 from __future__ import print_function
 import serpent
 import sys
+import time
 
 if sys.version_info < (3, 0):
     input = raw_input
@@ -34,7 +35,7 @@ class Player(object):
             self.lobby_menu()
             response = input("Type a command: ").strip()
             if response == "s" or response == "start": 
-                game.signal_start(self.name)
+                game.signal_ready(self.name)
                 break
             elif response == "c" or response == "check": self.game_print(game.get_lobby_status())
             elif response == "q" or response == "quit": 
@@ -53,7 +54,27 @@ class Player(object):
                 break
 
     def start_game(self, game):
-        print("---------------------------------------------- GAME START ----------------------------------------------")
+        self.game_print("--------------------------- GAME START ---------------------------")
+        self.game_print("The game will start now, you can enter \"s\" or \"slap\" to slap or you can just press enter " +
+                        "to continue without slapping")
+        while True:
+            # get round number and status 
+            current_round, current_card = game.get_round()
+            slap = input("Do you want to slap? Enter \"s\" or \"slap\" if so: ").strip()
+            if slap == "s" or slap == "slap": game.slap_attempt(self.name, int(round(time.time() * 1000)))
+            game.signal_ready(self.name)
+
+            # wait for round results
+            while True:
+                if game.players_ready(): break
+
+            self.game_print(game.get_round_results())
+
+
+
+
+
+
 
 
     def lobby_menu(self):
@@ -63,6 +84,13 @@ class Player(object):
         self.game_print("q or quit: quit the lobby entirely")
         self.game_print("----------------------------------------------------------------------")
 
+    def game_menu(self):
+        self.game_print("--------------------------- ERS GAME MENU ---------------------------")
+        self.game_print("f or flip: flips the next card")
+        self.game_print("c or check: checks the status of players in the lobby")
+        self.game_print("q or quit: quit the lobby entirely")
+        self.game_print("----------------------------------------------------------------------")        
+
 
     def game_print(self, text=""):
-        print("ERS [In Game]: " + text)
+        print(("ERS [{0}]: " + text).format(self.name))

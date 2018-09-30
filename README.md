@@ -19,8 +19,7 @@ python server.py
 python client.py
 
 # Design Choices
-Scalability is not really an issue here. If we worried about that I would definitely be 
-
+In terms of modularity, this code is not really 
 
 # Future 
 In the future I would want to think a lot more about scalability. The star network topology
@@ -30,3 +29,8 @@ Deal with disconnections
 
 # Future Functionality to Add
 Add lobbies, difficulty levels
+
+# design choices:
+- allowing a player to decide when to turn their card or automating it
+ --> ultimately decided to automate the card flipping although I originally kept it 
+ 	because it slowed down the flow of the game a lot waiting for a player to flip a card 

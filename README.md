@@ -54,10 +54,12 @@ I used Python because I've actually done a very similar project before but for m
 **Pyro4**
 This is a Python library for using objects that can interact with each other remotely. I've never used this library before but I skimmed through their documentation and recognized a lot of main concepts they implement from working with Java RMI so I went ahead with it. 
 
+## Testing
+I did not standarize a lot of the testing I did but I've included a very brief coverage test that can be run by going to the src directory and using the command "python coverage.py". I definitely should have made sure I had at least 80% coverage and some more flexible testing. 
 
 
 # Running Instructions
-You can test it by yourself by just opening a new terminal for each one of these tasks. Before you begin you'll need to have installed Pyro4 and Python. Assuming you have Python and Pip you can install Pyro4 by the command "pip install Pyro4". 
+You can test it by yourself by just opening a new terminal for each one of these tasks. Before you begin you'll need to have installed Pyro4 and Python. Assuming you have Python and Pip you can install Pyro4 by the command "pip install Pyro4". Also all participants should be on the same network.
 
 Open a terminal in the src directory and enter the following in this order:
 

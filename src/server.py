@@ -263,8 +263,8 @@ class GameServer(object):
             winning_reason = " for slapping first and correctly!!!"
 
         # we also want to consider if someone has won the round by simply playing a face or ace card
-        elif self.round > 1 and (self.round_history[self.round - 2][1].is_face_or_card() 
-            and not self.round_history[self.round - 1][1].is_face_or_card()): 
+        elif self.round > 1 and (self.round_history[self.round - 2][1].is_face_or_ace() 
+            and not self.round_history[self.round - 1][1].is_face_or_ace()): 
             winner = self.round_history[self.round - 2][0]
             winning_reason = " for being the last to put down a face or ace!!!"
 

@@ -1,7 +1,7 @@
 # Console Based Egyptian Rat Screw
 This is a console based version of the card game Egyptian Rat Screw. Multiple people can play this game at a time. 
 
-Build by Sung Soo (Anthony) Cho :) You can learn more about me at http://anthonycho.net/.
+Built by Anthony Cho :) You can learn more about me at http://anthonycho.net/.
 
 # Rules
 I've based the rules for this game on Bicycle's website:

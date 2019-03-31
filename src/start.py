@@ -5,6 +5,9 @@ import sys
 from client import Player
 
 # instantiates a client through which a user can join the ERS game
-game = Pyro4.Proxy("PYRONAME:ERS")
+nameserver=Pyro4.locateNS()
+uri=nameserver.lookup("PYRONAME:ERS")
+game = Pyro4.Proxy(uri)
+proxy.backup()
 player = Player()
 player.initiate_game(game)
